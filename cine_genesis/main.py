@@ -1,0 +1,277 @@
+"""
+CINE-GENESIS: Autonomous Short Film Production System
+Main CLI entry point
+"""
+import sys
+import argparse
+from pathlib import Path
+import logging
+
+from cine_genesis.core.workflow_orchestrator import WorkflowOrchestrator
+from cine_genesis.config import config
+
+
+def interactive_menu():
+    """Interactive menu for selecting options"""
+    print("\n" + "=" * 60)
+    print("  🎬 CINE-GENESIS Interactive Menu")
+    print("=" * 60)
+    
+    # Mode selection
+    print("\n📝 How do you want to start?")
+    print("  1. Create from idea (I have a concept)")
+    print("  2. Refine existing script (I have a script file)")
+    
+    mode = input("\nSelect mode (1 or 2): ").strip()
+    
+    film_idea = None
+    script_path = None
+    
+    if mode == "1":
+        print("\n" + "-" * 60)
+        film_idea = input("💡 Enter your film idea: ").strip()
+        if not film_idea:
+            print("❌ Film idea cannot be empty!")
+            sys.exit(1)
+    
+    elif mode == "2":
+        print("\n" + "-" * 60)
+        script_file = input("📄 Enter path to your script file: ").strip()
+        script_path = Path(script_file)
+        if not script_path.exists():
+            print(f"❌ Script file not found: {script_path}")
+            sys.exit(1)
+        film_idea = "Script-based film"  # Placeholder
+    
+    else:
+        print("❌ Invalid selection!")
+        sys.exit(1)
+    
+    # Duration
+    print("\n" + "-" * 60)
+    print("⏱️  Target Duration")
+    duration_input = input("Enter duration in seconds (default: 60): ").strip()
+    duration = int(duration_input) if duration_input else 60
+    
+    # Quality threshold
+    print("\n" + "-" * 60)
+    print("⭐ Quality Threshold")
+    print("  - 9.0 = Strict (default, may take longer)")
+    print("  - 8.0 = Moderate (faster, good quality)")
+    print("  - 7.0 = Lenient (quick results)")
+    threshold_input = input("Enter threshold 0-10 (default: 9.0): ").strip()
+    threshold = float(threshold_input) if threshold_input else 9.0
+    
+    # Max iterations
+    print("\n" + "-" * 60)
+    print("🔄 Maximum Iterations")
+    print("  How many times should we try to improve the script?")
+    iterations_input = input("Enter max iterations (default: 5): ").strip()
+    max_iterations = int(iterations_input) if iterations_input else 5
+    
+    # Output directory
+    print("\n" + "-" * 60)
+    print("📁 Output Directory")
+    output_input = input("Enter output path (default: ./output): ").strip()
+    output_dir = Path(output_input) if output_input else Path("./output")
+    
+    # Verbose mode
+    print("\n" + "-" * 60)
+    verbose_input = input("🔊 Enable verbose logging? (y/N): ").strip().lower()
+    verbose = verbose_input == 'y'
+    
+    # Summary
+    print("\n" + "=" * 60)
+    print("  📋 Configuration Summary")
+    print("=" * 60)
+    if script_path:
+        print(f"Mode: Refine existing script")
+        print(f"Script: {script_path}")
+    else:
+        print(f"Mode: Create from idea")
+        print(f"Idea: {film_idea}")
+    print(f"Duration: {duration}s")
+    print(f"Quality Threshold: {threshold}/10")
+    print(f"Max Iterations: {max_iterations}")
+    print(f"Output: {output_dir}")
+    print(f"Verbose: {verbose}")
+    print("=" * 60)
+    
+    confirm = input("\n✅ Start production? (Y/n): ").strip().lower()
+    if confirm == 'n':
+        print("❌ Cancelled.")
+        sys.exit(0)
+    
+    return {
+        'idea': film_idea,
+        'script': script_path,
+        'duration': duration,
+        'quality_threshold': threshold,
+        'max_iterations': max_iterations,
+        'output': output_dir,
+        'verbose': verbose
+    }
+
+
+def main():
+    """Main CLI entry point"""
+    # Check if running in interactive mode (no arguments provided)
+    if len(sys.argv) == 1:
+        # Interactive mode
+        options = interactive_menu()
+        args = argparse.Namespace(**options)
+    else:
+        # Command-line argument mode
+        parser = argparse.ArgumentParser(
+        description="CINE-GENESIS: Autonomous Short Film Production System",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog ="""
+Examples:
+  # Basic usage
+  python main.py --idea "A robot learning to feel emotions"
+  
+  # With custom output directory and duration
+  python main.py --idea "Space adventure" --output ./my_film --duration 30
+  
+  # Enable verbose logging
+  python main.py --idea "Mystery thriller" --verbose
+"""
+    )
+    
+        parser.add_argument(
+            '--idea',
+            type=str,
+            required=False,
+            help='Film concept or idea (brief description). Required if --script not provided.'
+        )
+        
+        parser.add_argument(
+            '--script',
+            type=Path,
+            default=None,
+            help='Path to existing script file to start with (skips initial writing, goes to refinement)'
+        )
+        
+        parser.add_argument(
+            '--output',
+            type=Path,
+            default=None,
+            help='Output directory (default: ./output)'
+        )
+        
+        parser.add_argument(
+            '--duration',
+            type=int,
+            default=60,
+            help='Target duration in seconds (default:60)'
+        )
+        
+        parser.add_argument(
+            '--quality-threshold',
+            type=float,
+            default=9.0,
+            help='Quality threshold for approval (0-10, default: 9.0)'
+        )
+        
+        parser.add_argument(
+            '--max-iterations',
+            type=int,
+            default=5,
+            help='Maximum iterations per phase (default: 5)'
+        )
+        
+        parser.add_argument(
+            '--verbose',
+            action='store_true',
+            help='Enable verbose logging'
+        )
+        
+        args = parser.parse_args()
+        
+        # Validate that either idea or script is provided
+        if not args.idea and not args.script:
+            parser.error("Either --idea or --script must be provided")
+        
+        if args.script and not args.script.exists():
+            parser.error(f"Script file not found: {args.script}")
+    
+    # Common validation and setup for both modes
+    
+    # Configure logging
+    if args.verbose:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+    
+    logger = logging.getLogger(__name__)
+    
+    # Update config with CLI args
+    if args.output:
+        config.workflow.output_dir = args.output
+    config.workflow.target_duration_seconds = args.duration
+    config.quality.default_quality_threshold = args.quality_threshold
+    config.quality.max_iterations_per_phase = args.max_iterations
+    
+    # Validate configuration
+    try:
+        config.validate()
+    except ValueError as e:
+        logger.error(f"Configuration error: {e}")
+        logger.error("\nPlease set the required API keys:")
+        logger.error("  export GEMINI_API_KEY='your_key_here'")
+        logger.error("\nOr create a .env file with:")
+        logger.error("  GEMINI_API_KEY=your_key_here")
+        sys.exit(1)
+    
+    # Print banner
+    print("=" * 60)
+    print("  CINE-GENESIS: Autonomous Short Film Production")
+    print("=" * 60)
+    
+    if args.script:
+        print(f"\nStarting from Script: {args.script}")
+        print("(Will refine and improve existing script)")
+    else:
+        print(f"\nFilm Idea: {args.idea}")
+        print("(Will create script from scratch)")
+    
+    print(f"Target Duration: {args.duration}s")
+    print(f"Quality Threshold: {args.quality_threshold}/10")
+    print(f"Output Directory: {config.workflow.output_dir}")
+    print("\n" + "=" * 60 + "\n")
+    
+    # Create orchestrator and run
+    try:
+        orchestrator = WorkflowOrchestrator(
+            film_idea=args.idea or "Script-based film",
+            base_script_path=args.script,
+            output_dir=config.workflow.output_dir
+        )
+        
+        final_output = orchestrator.run()
+        
+        print("\n" + "=" * 60)
+        print("  ✓ FILM PRODUCTION COMPLETE!")
+        print("=" * 60)
+        print(f"\nFinal output: {final_output}")
+        print(f"All files saved to: {config.workflow.output_dir}")
+        print()
+        
+    except KeyboardInterrupt:
+        logger.warning("\nProduction interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"\nProduction failed: {str(e)}")
+        import traceback
+        logger.debug(traceback.format_exc())
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

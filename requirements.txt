@@ -1,0 +1,22 @@
+# CINE-GENESIS Dependencies
+
+# Core AI/ML
+google-generativeai>=0.8.0
+pillow>=10.0.0
+
+# Video/Audio Processing
+moviepy>=1.0.3
+ffmpeg-python>=0.2.0
+
+# API Clients (placeholders - add as needed)
+# stability-sdk  # For Stability AI
+# replicate  # For Replicate API
+# elevenlabs  # For ElevenLabs TTS
+
+# Utilities
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Development
+pytest>=7.4.0
+black>=23.0.0
