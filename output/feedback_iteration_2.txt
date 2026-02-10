@@ -3,7 +3,7 @@ ITERATION 2 - TRIBUNAL VERDICT
 
 RESULT: REJECTED ❌
 AVERAGE SCORE: 6.3/10
-THRESHOLD: 8.0/10
+THRESHOLD: 9.0/10
 
 INDIVIDUAL SCORES:
   - TechnicalCritic: 9.0/10
@@ -26,13 +26,16 @@ STATUS: ✗ REJECTED
    1. Improve quality to reach 9/10 threshold (current: 5.0/10)
 
 ✗ [AudienceCritic] Score: 5.0/10
-   Comments: 
+   Comments: What I Liked: The setup was really good. I liked the image of the guy being super meticulous, the cold light, the sound of the keyboard—it immediately set a mood. The tension when he finds the word "WHY?" was great. It felt like a tiny thing was about to blow up his whole world, which is engaging. The reveal of him writing "Because" instead of correcting it was a cool twist.
+What Confused Me: I’m not totally sure what the point was, but maybe that’s the point? It’s very short and ends right when things get interesting. Is he agreeing with the question? Is he confessing something? It leaves you hanging, which is fine for a short, but I wanted a little more context on *why* he chose that specific response.
+Did It Deliver: Since the genre is unspecified, it delivered on being a very focused, character-driven piece. It felt like a little psychological drama or maybe a very quiet thriller setup. It delivered on mood and tension, even if it didn't deliver a big action payoff.
+Memorable Moments: The visual contrast between the messy black "WHY?" and his elegant, personal silver pen writing "Because" was the strongest moment. That visual clash really stuck with me.
    Suggestions:
-   1. 
+   1. For a short film, I think it needs one more beat after he closes the book. Maybe a quick shot of him smiling slightly, or maybe him looking terrified, just so I know how to interpret his calm. Right now, the ending is a bit too ambiguous for me to fully process the emotional payoff. But overall, I was hooked by the atmosphere.
 
 VERDICT: Revisions needed (avg score: 6.3/10)
 
 PRIORITY ACTIONS:
 1. Improve quality to reach 9/10 threshold (current: 5.0/10)
-2. 
+2. For a short film, I think it needs one more beat after he closes the book. Maybe a quick shot of him smiling slightly, or maybe him looking terrified, just so I know how to interpret his calm. Right now, the ending is a bit too ambiguous for me to fully process the emotional payoff. But overall, I was hooked by the atmosphere.
 

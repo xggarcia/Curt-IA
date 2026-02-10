@@ -17,15 +17,35 @@ def interactive_menu():
     print("  🎬 CINE-GENESIS Interactive Menu")
     print("=" * 60)
     
+    # Check for resumable projects
+    output_base = Path("./output")
+    resumable_projects = []
+    if output_base.exists():
+        for path in output_base.iterdir():
+            if path.is_dir():
+                checkpoint = path / "workflow_state.json"
+                if checkpoint.exists():
+                    # Read checkpoint to get phase info
+                    try:
+                        import json
+                        with open(checkpoint, 'r', encoding='utf-8') as f:
+                            state = json.load(f)
+                        resumable_projects.append((path, state))
+                    except:
+                        pass
+    
     # Mode selection
     print("\n📝 How do you want to start?")
     print("  1. Create from idea (I have a concept)")
     print("  2. Refine existing script (I have a script file)")
+    if resumable_projects:
+        print("  3. Resume previous creation")
     
-    mode = input("\nSelect mode (1 or 2): ").strip()
+    mode = input("\nSelect mode (1, 2" + (", or 3" if resumable_projects else "") + "): ").strip()
     
     film_idea = None
     script_path = None
+    resume_from = None
     
     if mode == "1":
         print("\n" + "-" * 60)
@@ -43,9 +63,55 @@ def interactive_menu():
             sys.exit(1)
         film_idea = "Script-based film"  # Placeholder
     
+    elif mode == "3" and resumable_projects:
+        print("\n" + "-" * 60)
+        print("📂 Resumable Projects:\n")
+        for i, (path, state) in enumerate(resumable_projects, 1):
+            phase = state.get('current_phase', 'UNKNOWN')
+            iteration = state.get('iteration_count', 0)
+            timestamp = state.get('timestamp', 'Unknown time')
+            idea = state.get('film_idea', 'Unknown idea')
+            # Truncate idea if too long
+            if len(idea) > 50:
+                idea = idea[:47] + "..."
+            print(f"  {i}. {path.name}")
+            print(f"     Phase: {phase}, Iteration: {iteration}")
+            print(f"     Idea: {idea}")
+            print(f"     Last updated: {timestamp[:19]}")
+            print()
+        
+        project_idx = input(f"Select project (1-{len(resumable_projects)}): ").strip()
+        try:
+            idx = int(project_idx) - 1
+            if 0 <= idx < len(resumable_projects):
+                project_path, state = resumable_projects[idx]
+                resume_from = project_path / "workflow_state.json"
+                film_idea = state.get('film_idea', 'Resumed film')
+                output_dir = project_path
+                print(f"✅ Resuming from: {project_path}")
+            else:
+                print("❌ Invalid selection!")
+                sys.exit(1)
+        except ValueError:
+            print("❌ Invalid input!")
+            sys.exit(1)
+    
     else:
         print("❌ Invalid selection!")
         sys.exit(1)
+    
+    # Skip configuration prompts if resuming
+    if resume_from:
+        return {
+            'idea': film_idea,
+            'script': None,
+            'duration': 60,
+            'quality_threshold': 9.0,
+            'max_iterations': 5,
+            'output': output_dir,
+            'verbose': False,
+            'resume': resume_from
+        }
     
     # Duration
     print("\n" + "-" * 60)
@@ -109,7 +175,8 @@ def interactive_menu():
         'quality_threshold': threshold,
         'max_iterations': max_iterations,
         'output': output_dir,
-        'verbose': verbose
+        'verbose': verbose,
+        'resume': None
     }
 
 
@@ -186,11 +253,33 @@ Examples:
             help='Enable verbose logging'
         )
         
+        parser.add_argument(
+            '--resume',
+            type=Path,
+            default=None,
+            help='Resume from checkpoint in specified output directory'
+        )
+        
         args = parser.parse_args()
         
-        # Validate that either idea or script is provided
-        if not args.idea and not args.script:
-            parser.error("Either --idea or --script must be provided")
+        # Handle resume mode
+        if args.resume:
+            checkpoint_path = args.resume if args.resume.name == 'workflow_state.json' else args.resume / 'workflow_state.json'
+            if not checkpoint_path.exists():
+                parser.error(f"Checkpoint file not found: {checkpoint_path}")
+            # Load checkpoint to get film idea and output dir
+            import json
+            with open(checkpoint_path, 'r', encoding='utf-8') as f:
+                state = json.load(f)
+            args.idea = state.get('film_idea', 'Resumed film')
+            args.output = args.resume if args.resume.name != 'workflow_state.json' else args.resume.parent
+            print(f"\n📂 Resuming from checkpoint: {checkpoint_path}")
+            print(f"   Phase: {state.get('current_phase', 'UNKNOWN')}")
+            print(f"   Iteration: {state.get('iteration_count', 0)}\n")
+        else:
+            # Validate that either idea or script is provided
+            if not args.idea and not args.script:
+                parser.error("Either --idea or --script must be provided")
         
         if args.script and not args.script.exists():
             parser.error(f"Script file not found: {args.script}")
@@ -248,10 +337,16 @@ Examples:
     
     # Create orchestrator and run
     try:
+        # Determine resume path
+        resume_from = None
+        if hasattr(args, 'resume') and args.resume:
+            resume_from = args.resume if args.resume.name == 'workflow_state.json' else args.resume / 'workflow_state.json'
+        
         orchestrator = WorkflowOrchestrator(
             film_idea=args.idea or "Script-based film",
             base_script_path=args.script,
-            output_dir=config.workflow.output_dir
+            output_dir=config.workflow.output_dir,
+            resume_from=resume_from
         )
         
         final_output = orchestrator.run()

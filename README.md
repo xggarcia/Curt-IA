@@ -84,6 +84,16 @@ python -m cine_genesis.main \
   --max-iterations 3
 ```
 
+### Resume from checkpoint (after API quota interruption)
+
+```bash
+# Resume from previous session
+python -m cine_genesis.main --resume ./output
+
+# Or use interactive mode and select "Resume previous creation"
+python -m cine_genesis.main
+```
+
 ## 📁 Project Structure
 
 ```
@@ -130,13 +140,20 @@ Edit `cine_genesis/config.py` or use environment variables:
    - Tribunal evaluates (all must score ≥9/10)
    - If failed: feedback → revise → repeat
    - If 5 failures: Director deadlock protocol
+   - **Checkpoint saved** after each iteration ⭐
 
-3. **Visualization** (Framework ready)
+3. **Resume Support** ⭐ NEW
+   - Automatically saves progress after each phase
+   - Resume with `--resume` flag or interactive menu
+   - Skips completed phases, continues from interruption
+   - Perfect for handling API quota limits
+
+4. **Visualization** (Framework ready)
    - Storyboard agent creates visual prompts
    - Animator generates video clips
    - Critics evaluate visual quality
 
-4. **Finalization** (Framework ready)
+5. **Finalization** (Framework ready)
    - Editor assembles clips
    - Audio agent adds sound
    - Final tribunal review

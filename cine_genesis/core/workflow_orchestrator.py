@@ -2,9 +2,11 @@
 Workflow Orchestrator - Manages the end-to-end film production pipeline
 """
 import logging
+import json
 from pathlib import Path
 from typing import Optional, Dict, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from datetime import datetime
 
 from cine_genesis.config import config
 from cine_genesis.utils.api_clients import GeminiClient
@@ -24,14 +26,28 @@ class WorkflowState:
     """Track workflow state across phases"""
     current_phase: str = "INIT"
     iteration_count: int = 0
+    film_idea: str = ""
+    director_vision: Optional[Dict[str, str]] = None
     script: Optional[str] = None
     visual_bible: Optional[Dict] = None
     storyboard: Optional[Dict] = None
     assets: Dict[str, Any] = None
+    timestamp: Optional[str] = None
     
     def __post_init__(self):
         if self.assets is None:
             self.assets = {}
+        if self.timestamp is None:
+            self.timestamp = datetime.now().isoformat()
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert state to dictionary for JSON serialization"""
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'WorkflowState':
+        """Create WorkflowState from dictionary"""
+        return cls(**data)
 
 
 class WorkflowOrchestrator:
@@ -45,12 +61,14 @@ class WorkflowOrchestrator:
         film_idea: str,
         output_dir: Optional[Path] = None,
         gemini_client: Optional[GeminiClient] = None,
-        base_script_path: Optional[Path] = None
+        base_script_path: Optional[Path] = None,
+        resume_from: Optional[Path] = None
     ):
         self.film_idea = film_idea
         self.base_script_path = base_script_path
         self.output_dir = output_dir or config.workflow.output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.checkpoint_path = self.output_dir / "workflow_state.json"
         
         # Load base script if provided
         if self.base_script_path:
@@ -82,8 +100,16 @@ class WorkflowOrchestrator:
         # Voting system
         self.voting_system = VotingSystem()
         
-        # State
-        self.state = WorkflowState()
+        # State - load from checkpoint if resuming
+        if resume_from and resume_from.exists():
+            logger.info(f"📂 Loading checkpoint from: {resume_from}")
+            self.state = self._load_checkpoint(resume_from)
+            logger.info(f"✅ Resumed from phase: {self.state.current_phase}, iteration: {self.state.iteration_count}")
+            # Restore director vision if available
+            if self.state.director_vision:
+                self.director.vision = self.state.director_vision
+        else:
+            self.state = WorkflowState(film_idea=film_idea)
     
     def run(self) -> Dict[str, Any]:
         """
@@ -96,16 +122,32 @@ class WorkflowOrchestrator:
         
         try:
             # Phase A: Preparation
-            self._phase_preparation()
+            if self.state.current_phase in ["INIT", "PREPARATION"]:
+                self._phase_preparation()
+                self.state.current_phase = "SCRIPTWRITING"
+                self._save_checkpoint()
+            else:
+                logger.info(f"Skipping PREPARATION (already completed)")
             
             # Phase B: Scriptwriting
-            self._phase_scriptwriting()
+            if self.state.current_phase == "SCRIPTWRITING":
+                self._phase_scriptwriting()
+                self.state.current_phase = "COMPLETE"
+                self._save_checkpoint()
+            else:
+                logger.info(f"Skipping SCRIPTWRITING (already completed)")
             
             # Phase C: Visualization (TODO)
-            # self._phase_visualization()
+            # if self.state.current_phase == "VISUALIZATION":
+            #     self._phase_visualization()
+            #     self.state.current_phase = "FINALIZATION"
+            #     self._save_checkpoint()
             
             # Phase D: Finalization (TODO)
-            # self._phase_finalization()
+            # if self.state.current_phase == "FINALIZATION":
+            #     self._phase_finalization()
+            #     self.state.current_phase = "COMPLETE"
+            #     self._save_checkpoint()
             
             logger.info("=" * 60)
             logger.info("✅ Production complete!")
@@ -131,6 +173,7 @@ class WorkflowOrchestrator:
         # Director defines vision
         logger.info("Director defining creative vision...")
         vision = self.director.define_vision(self.film_idea)
+        self.state.director_vision = vision
         
         # Coherence Manager creates Visual Bible (for visual phases)
         # For now, we'll skip this for pure script generation
@@ -192,6 +235,10 @@ class WorkflowOrchestrator:
             draft_path = self.output_dir / f"script_draft_{self.state.iteration_count}.txt"
             draft_path.write_text(script, encoding='utf-8')
             logger.info(f"Saved draft to: {draft_path}")
+            
+            # Update state and save checkpoint
+            self.state.script = script
+            self._save_checkpoint()
             
             # Director review
             logger.info("Director reviewing script...")
@@ -257,6 +304,10 @@ AGGREGATED FEEDBACK:
                 final_path = self.output_dir / "final_script.txt"
                 final_path.write_text(script, encoding='utf-8')
                 logger.info(f"Final script saved to: {final_path}\n")
+                
+                # Save checkpoint with completion status
+                self.state.current_phase = "SCRIPTWRITING_COMPLETE"
+                self._save_checkpoint()
                 return
             
             # FAILED - give feedback and iterate
@@ -285,6 +336,42 @@ AGGREGATED FEEDBACK:
         final_path = self.output_dir / "final_script.txt"
         final_path.write_text(self.state.script, encoding='utf-8')
         logger.info(f"Final script (emergency approved) saved to: {final_path}\n")
+        
+        # Save checkpoint with completion status
+        self.state.current_phase = "SCRIPTWRITING_COMPLETE"
+        self._save_checkpoint()
+    
+    def _save_checkpoint(self):
+        """Save current workflow state to checkpoint file"""
+        try:
+            # Update timestamp
+            self.state.timestamp = datetime.now().isoformat()
+            
+            # Save director vision if available
+            if self.director.vision:
+                self.state.director_vision = self.director.vision
+            
+            # Write to temporary file first for atomic operation
+            temp_path = self.checkpoint_path.with_suffix('.json.tmp')
+            with open(temp_path, 'w', encoding='utf-8') as f:
+                json.dump(self.state.to_dict(), f, indent=2, ensure_ascii=False)
+            
+            # Atomic rename
+            temp_path.replace(self.checkpoint_path)
+            
+            logger.debug(f"💾 Checkpoint saved: {self.checkpoint_path}")
+        except Exception as e:
+            logger.warning(f"⚠️  Failed to save checkpoint: {e}")
+    
+    def _load_checkpoint(self, checkpoint_path: Path) -> WorkflowState:
+        """Load workflow state from checkpoint file"""
+        try:
+            with open(checkpoint_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return WorkflowState.from_dict(data)
+        except Exception as e:
+            logger.error(f"Failed to load checkpoint: {e}")
+            raise RuntimeError(f"Cannot resume: checkpoint file is corrupted or invalid")
     
     def _get_latest_feedback(self) -> str:
         """Get formatted feedback from last iteration"""
