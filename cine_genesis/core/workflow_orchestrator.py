@@ -271,6 +271,11 @@ class WorkflowOrchestrator:
             logger.info(f"    Score: {aud_feedback.score}/10")
             feedbacks.append(aud_feedback)
             
+            # Pass feedback to scriptwriter for next iteration
+            for feedback in feedbacks:
+                self.scriptwriter.receive_feedback(feedback)
+            logger.debug(f"Passed {len(feedbacks)} feedback items to scriptwriter")
+            
             # Voting
             logger.info("-" * 60)
             result = self.voting_system.collect_votes(feedbacks)

@@ -57,13 +57,16 @@ class AudienceCriticAgent(CriticAgent):
 
 You're NOT a film expert - you're a regular viewer who wants to be entertained.
 
-Evaluate based on:
-1. ENTERTAINMENT: Is this fun/engaging/interesting to watch?
-2. CLARITY: Can I easily follow what's happening?
-3. GENRE DELIVERY: Does it deliver what I expect from {genre}?
-4. EMOTIONAL ENGAGEMENT: Do I care about what happens?
-5. MEMORABILITY: Will I remember this? Any standout moments?
-6. CONFUSION: Are there parts that are confusing or boring?
+You MUST provide specific, detailed feedback in three categories:
+1. GOOD - What audiences will enjoy and find engaging
+2. BAD - What will confuse, bore, or disappoint audiences
+3. IMPROVEMENTS - How to make it more engaging for viewers
+
+Be specific: reference actual scenes, moments, or dialogue that you liked or didn't like.
+
+IMPORTANT: Focus on how to make scenes MORE engaging, not removing them.
+Only suggest cutting something if it truly ruins the viewing experience.
+If you DO suggest removal, explicitly state: "SUGGEST REMOVAL: [element] because [reason]"
 
 Score 0-10 where:
 - 9-10: I loved it! Would watch again and recommend
@@ -77,14 +80,31 @@ Be honest and straightforward - this is your casual opinion, not academic analys
 
 {script}
 
-Give your honest review as a regular viewer:
+Evaluate from a viewer's perspective:
+- Entertainment and engagement factor
+- Clarity and understandability
+- Genre expectations delivery
+- Emotional connection
+- Memorable moments
+
+Give your honest review in this EXACT format:
 
 SCORE: [0-10]
-WHAT_I_LIKED: [entertaining/engaging parts]
-WHAT_CONFUSED_ME: [unclear or boring parts]
-DID_IT_DELIVER: [did it meet genre expectations?]
-MEMORABLE_MOMENTS: [anything that stood out?]
-SUGGESTIONS: [what would make it better for you as a viewer?]"""
+
+GOOD:
+- [Specific thing you enjoyed 1]
+- [Specific thing you enjoyed 2]
+- [Specific thing you enjoyed 3]
+
+BAD:
+- [Specific confusing/boring element 1]
+- [Specific confusing/boring element 2]
+- [Specific confusing/boring element 3]
+
+IMPROVEMENTS:
+- [How to make it better for viewers 1]
+- [How to make it better for viewers 2]
+- [How to make it better for viewers 3]"""
 
         response = self.gemini_client.generate_text(
             prompt=prompt,
@@ -106,6 +126,8 @@ SUGGESTIONS: [what would make it better for you as a viewer?]"""
         score = 5.0
         comments = ""
         suggestions = []
+        good_points = []
+        bad_points = []
         
         lines = response.strip().split('\n')
         current_section = None
@@ -121,24 +143,40 @@ SUGGESTIONS: [what would make it better for you as a viewer?]"""
                 except (ValueError, IndexError):
                     score = 5.0
             
-            elif ':' in line:
-                parts = line.split(':', 1)
-                section = parts[0].strip().upper()
-                content = parts[1].strip() if len(parts) > 1 else ""
-                
-                if section in ['WHAT_I_LIKED', 'WHAT_CONFUSED_ME', 'DID_IT_DELIVER', 'MEMORABLE_MOMENTS']:
-                    if content:
-                        comments += f"{section.replace('_', ' ').title()}: {content}\n"
-                    current_section = section.lower()
-                
-                elif section == 'SUGGESTIONS':
-                    current_section = 'suggestions'
-                    if content:
-                        suggestions.append(content)
+            elif line.upper().startswith('GOOD:'):
+                current_section = 'good'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
+                if content:
+                    good_points.append(content)
             
-            elif line and current_section == 'suggestions':
-                if line.startswith('-') or line.startswith('•') or (line[0].isdigit() and '.' in line):
-                    suggestions.append(line.lstrip('-•0123456789. '))
+            elif line.upper().startswith('BAD:'):
+                current_section = 'bad'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
+                if content:
+                    bad_points.append(content)
+            
+            elif line.upper().startswith('IMPROVEMENTS:'):
+                current_section = 'improvements'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
+                if content:
+                    suggestions.append(content)
+            
+            elif line and current_section in ['good', 'bad', 'improvements']:
+                # Multi-line items
+                if line.startswith('-') or line.startswith('•') or (line[0].isdigit() and '.' in line[:3]):
+                    cleaned = line.lstrip('-•0123456789. ')
+                    if current_section == 'good':
+                        good_points.append(cleaned)
+                    elif current_section == 'bad':
+                        bad_points.append(cleaned)
+                    elif current_section == 'improvements':
+                        suggestions.append(cleaned)
+        
+        # Build structured comments
+        if good_points:
+            comments += "✅ GOOD:\n" + "\n".join([f"  • {point}" for point in good_points]) + "\n\n"
+        if bad_points:
+            comments += "❌ BAD:\n" + "\n".join([f"  • {point}" for point in bad_points]) + "\n\n"
         
         if not suggestions:
             suggestions = self._ensure_actionable_feedback(comments, score)

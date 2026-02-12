@@ -58,13 +58,16 @@ The film's intended vision:
 - Tone: {vision.get('tone', 'N/A')}
 - Message: {vision.get('message', 'N/A')}
 
-Evaluate the screenplay on:
-1. STRUCTURE: Clear beginning, middle, end? Proper dramatic arc?
-2. CHARACTER: Are characters compelling and well-motivated?
-3. DIALOGUE: Natural, purposeful, reveals character?
-4. EMOTIONAL IMPACT: Does it evoke intended emotions?
-5. THEME: Is the central message clear and resonant?
-6. PACING: Appropriate rhythm for a short film?
+You MUST provide specific, detailed feedback in three categories:
+1. GOOD - Strong narrative elements that work well
+2. BAD - Narrative weaknesses and problems
+3. IMPROVEMENTS - Specific actionable fixes for story/character/dialogue
+
+Be specific: reference actual scenes, character moments, or dialogue from the script.
+
+IMPORTANT: Preserve the story! Focus on improving execution, not changing plot.
+Only suggest removing scenes/beats if absolutely necessary for story coherence.
+If you DO suggest removal, explicitly state: "SUGGEST REMOVAL: [element] because [reason]"
 
 Score 0-10 where:
 - 9-10: Exceptional storytelling, emotionally powerful
@@ -76,16 +79,32 @@ Score 0-10 where:
 
 {script}
 
-Provide detailed evaluation:
+Analyze these aspects:
+- Story structure and dramatic arc
+- Character development and motivation
+- Dialogue quality and naturalness
+- Emotional impact
+- Theme clarity
+- Pacing for a short film
+
+Provide evaluation in this EXACT format:
 
 SCORE: [0-10]
-STRUCTURE: [analysis of dramatic structure]
-CHARACTER: [character depth and development]
-DIALOGUE: [quality and naturalness of dialogue]
-EMOTIONAL_IMPACT: [does it move the audience?]
-THEME: [clarity and power of message]
-ISSUES: [specific narrative problems, if any]
-SUGGESTIONS: [actionable improvements]"""
+
+GOOD:
+- [Specific strong narrative element 1]
+- [Specific strong narrative element 2]
+- [Specific strong narrative element 3]
+
+BAD:
+- [Specific narrative weakness 1]
+- [Specific narrative weakness 2]
+- [Specific narrative weakness 3]
+
+IMPROVEMENTS:
+- [Actionable narrative improvement 1]
+- [Actionable narrative improvement 2]
+- [Actionable narrative improvement 3]"""
 
         response = self.gemini_client.generate_text(
             prompt=prompt,
@@ -107,6 +126,8 @@ SUGGESTIONS: [actionable improvements]"""
         score = 5.0
         comments = ""
         suggestions = []
+        good_points = []
+        bad_points = []
         
         lines = response.strip().split('\n')
         current_section = None
@@ -122,25 +143,40 @@ SUGGESTIONS: [actionable improvements]"""
                 except (ValueError, IndexError):
                     score = 5.0
             
-            elif ':' in line and line.split(':')[0].strip().upper() in [
-                'STRUCTURE', 'CHARACTER', 'DIALOGUE', 'EMOTIONAL_IMPACT', 
-                'THEME', 'ISSUES'
-            ]:
-                section = line.split(':', 1)[0].strip()
-                content = line.split(':', 1)[1].strip()
+            elif line.upper().startswith('GOOD:'):
+                current_section = 'good'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
                 if content:
-                    comments += f"{section}: {content}\n"
-                current_section = section.lower()
+                    good_points.append(content)
             
-            elif line.startswith('SUGGESTIONS:'):
-                current_section = 'suggestions'
-                content = line.split(':', 1)[1].strip()
+            elif line.upper().startswith('BAD:'):
+                current_section = 'bad'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
+                if content:
+                    bad_points.append(content)
+            
+            elif line.upper().startswith('IMPROVEMENTS:'):
+                current_section = 'improvements'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
                 if content:
                     suggestions.append(content)
             
-            elif line and current_section == 'suggestions':
-                if line.startswith('-') or line.startswith('•') or line[0].isdigit():
-                    suggestions.append(line.lstrip('-•0123456789. '))
+            elif line and current_section in ['good', 'bad', 'improvements']:
+                # Multi-line items
+                if line.startswith('-') or line.startswith('•') or (line[0].isdigit() and '.' in line[:3]):
+                    cleaned = line.lstrip('-•0123456789. ')
+                    if current_section == 'good':
+                        good_points.append(cleaned)
+                    elif current_section == 'bad':
+                        bad_points.append(cleaned)
+                    elif current_section == 'improvements':
+                        suggestions.append(cleaned)
+        
+        # Build structured comments
+        if good_points:
+            comments += "✅ GOOD:\n" + "\n".join([f"  • {point}" for point in good_points]) + "\n\n"
+        if bad_points:
+            comments += "❌ BAD:\n" + "\n".join([f"  • {point}" for point in bad_points]) + "\n\n"
         
         if not suggestions:
             suggestions = self._ensure_actionable_feedback(comments, score)

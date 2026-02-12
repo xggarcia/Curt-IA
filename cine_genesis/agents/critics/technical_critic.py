@@ -51,11 +51,15 @@ class TechnicalCriticAgent(CriticAgent):
         """Evaluate script for technical feasibility"""
         system_instruction = """You are a technical director reviewing a screenplay for production feasibility.
 
-Evaluate:
-1. Visual clarity - Are scenes clearly described and visualizable?
-2. Technical feasibility - Can this be produced with AI image/video generation?
-3. Scene complexity - Are there too many complex effects or actions?
-4. Continuity - Are there clear scene transitions?
+You MUST provide specific, detailed feedback in three categories:
+1. GOOD - What works well technically
+2. BAD - What has significant technical problems
+3. IMPROVEMENTS - Specific actionable steps to enhance quality
+
+Be specific: reference actual scenes, effects, or descriptions from the script.
+
+IMPORTANT: Preserve the story! Only suggest removing scenes/elements if absolutely necessary.
+If you DO suggest removal, explicitly state: "SUGGEST REMOVAL: [element] because [reason]"
 
 Score 0-10 where:
 - 9-10: Excellent, highly producible
@@ -67,11 +71,30 @@ Score 0-10 where:
 
 {script}
 
-Provide your evaluation in this format:
+Evaluate these aspects:
+- Visual clarity and describability of scenes
+- Technical feasibility with AI image/video generation
+- Scene complexity and effects difficulty
+- Continuity and transitions
+
+Provide evaluation in this EXACT format:
+
 SCORE: [0-10]
-STRENGTHS: [what works well technically]
-ISSUES: [specific technical problems, if any]
-SUGGESTIONS: [actionable improvements]"""
+
+GOOD:
+- [Specific positive technical aspect 1]
+- [Specific positive technical aspect 2]
+- [Specific positive technical aspect 3]
+
+BAD:
+- [Specific technical problem 1]
+- [Specific technical problem 2]
+- [Specific technical problem 3]
+
+IMPROVEMENTS:
+- [Actionable improvement 1]
+- [Actionable improvement 2]
+- [Actionable improvement 3]"""
 
         response = self.gemini_client.generate_text(
             prompt=prompt,
@@ -194,6 +217,8 @@ SUGGESTIONS: [how to improve]"""
         score = 5.0  # Default middle score
         comments = ""
         suggestions = []
+        good_points = []
+        bad_points = []
         
         lines = response.strip().split('\n')
         current_section = None
@@ -210,28 +235,40 @@ SUGGESTIONS: [how to improve]"""
                 except (ValueError, IndexError):
                     score = 5.0
             
-            elif line.startswith('STRENGTHS:'):
-                current_section = 'strengths'
-                content = line.split(':', 1)[1].strip()
+            elif line.upper().startswith('GOOD:'):
+                current_section = 'good'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
                 if content:
-                    comments += f"Strengths: {content}\n"
+                    good_points.append(content)
             
-            elif line.startswith('ISSUES:'):
-                current_section = 'issues'
-                content = line.split(':', 1)[1].strip()
+            elif line.upper().startswith('BAD:'):
+                current_section = 'bad'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
                 if content:
-                    comments += f"Issues: {content}\n"
+                    bad_points.append(content)
             
-            elif line.startswith('SUGGESTIONS:'):
-                current_section = 'suggestions'
-                content = line.split(':', 1)[1].strip()
+            elif line.upper().startswith('IMPROVEMENTS:'):
+                current_section = 'improvements'
+                content = line.split(':', 1)[1].strip() if ':' in line else ""
                 if content:
                     suggestions.append(content)
             
-            elif line and current_section == 'suggestions':
-                # Multi-line suggestions
-                if line.startswith('-') or line.startswith('•') or line[0].isdigit():
-                    suggestions.append(line.lstrip('-•0123456789. '))
+            elif line and current_section in ['good', 'bad', 'improvements']:
+                # Multi-line items
+                if line.startswith('-') or line.startswith('•') or (line[0].isdigit() and '.' in line[:3]):
+                    cleaned = line.lstrip('-•0123456789. ')
+                    if current_section == 'good':
+                        good_points.append(cleaned)
+                    elif current_section == 'bad':
+                        bad_points.append(cleaned)
+                    elif current_section == 'improvements':
+                        suggestions.append(cleaned)
+        
+        # Build structured comments
+        if good_points:
+            comments += "✅ GOOD:\n" + "\n".join([f"  • {point}" for point in good_points]) + "\n\n"
+        if bad_points:
+            comments += "❌ BAD:\n" + "\n".join([f"  • {point}" for point in bad_points]) + "\n\n"
         
         # Ensure we have actionable suggestions
         if not suggestions:

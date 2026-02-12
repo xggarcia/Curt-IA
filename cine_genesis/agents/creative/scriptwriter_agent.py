@@ -70,8 +70,31 @@ Focus on:
 FEEDBACK TO ADDRESS:
 {feedback_text}
 
-Revise the script to address all feedback while maintaining the director's vision. 
-Provide the COMPLETE revised screenplay below:"""
+REVISION INSTRUCTIONS:
+
+CRITICAL RULES:
+1. PRESERVE ALL STORY BEATS: Maintain the same plot points, actions, and story progression
+2. PRESERVE ALL SCENES: Keep all existing scenes unless feedback explicitly requires removal
+3. PRESERVE CHARACTER ACTIONS: Keep the same character beats and key moments
+4. IMPROVE EXECUTION: Enhance dialogue, descriptions, pacing, visual clarity WITHOUT changing the story
+
+What you CAN change:
+- Dialogue wording and delivery
+- Scene descriptions and visual details
+- Pacing and timing within scenes
+- Technical execution and formatting
+
+What you CANNOT change without explicit feedback:
+- Core plot points and story beats
+- Character actions and key moments
+- Scene order or structure
+- The fundamental story being told
+
+If feedback explicitly suggests removing a scene or story element:
+- Note this at the top of your revision
+- Format: "INTENTIONAL DELETION: [what was removed and why]"
+
+Revise the script following these rules. Provide the COMPLETE revised screenplay below:"""
         
         else:
             # Initial write mode

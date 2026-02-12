@@ -46,6 +46,8 @@ def interactive_menu():
     film_idea = None
     script_path = None
     resume_from = None
+    output_dir = None
+    story_name = None
     
     if mode == "1":
         print("\n" + "-" * 60)
@@ -53,6 +55,52 @@ def interactive_menu():
         if not film_idea:
             print("❌ Film idea cannot be empty!")
             sys.exit(1)
+        
+        # Ask for story name
+        print("\n" + "-" * 60)
+        print("📁 Story Name")
+        print("  This will be used as the folder name for this project.")
+        default_name = film_idea[:30].replace(" ", "_").replace("/", "_").replace("\\", "_")
+        story_name_input = input(f"Enter story name (default: '{default_name}'): ").strip()
+        story_name = story_name_input if story_name_input else default_name
+        
+        # Sanitize folder name
+        story_name = "".join(c for c in story_name if c.isalnum() or c in ('_', '-', ' ')).rstrip()
+        story_name = story_name.replace(" ", "_")
+        
+        output_dir = output_base / story_name
+        
+        # Check if folder exists
+        if output_dir.exists():
+            checkpoint = output_dir / "workflow_state.json"
+            if checkpoint.exists():
+                print(f"\n⚠️  Story folder '{story_name}' already exists!")
+                print(f"   Found checkpoint at: {checkpoint}")
+                
+                # Load checkpoint info
+                try:
+                    import json
+                    with open(checkpoint, 'r', encoding='utf-8') as f:
+                        state = json.load(f)
+                    phase = state.get('current_phase', 'UNKNOWN')
+                    iteration = state.get('iteration_count', 0)
+                    print(f"   Phase: {phase}, Iteration: {iteration}")
+                except:
+                    pass
+                
+                resume_choice = input("\n   Resume from this checkpoint? (Y/n): ").strip().lower()
+                if resume_choice != 'n':
+                    resume_from = checkpoint
+                    print(f"✅ Will resume from existing checkpoint")
+                else:
+                    overwrite = input("   Overwrite existing folder? (y/N): ").strip().lower()
+                    if overwrite == 'y':
+                        import shutil
+                        shutil.rmtree(output_dir)
+                        print(f"✅ Deleted existing folder")
+                    else:
+                        print("❌ Cancelled. Please choose a different story name.")
+                        sys.exit(0)
     
     elif mode == "2":
         print("\n" + "-" * 60)
@@ -62,6 +110,39 @@ def interactive_menu():
             print(f"❌ Script file not found: {script_path}")
             sys.exit(1)
         film_idea = "Script-based film"  # Placeholder
+        
+        # Ask for story name
+        print("\n" + "-" * 60)
+        print("📁 Story Name")
+        print("  This will be used as the folder name for this project.")
+        default_name = script_path.stem
+        story_name_input = input(f"Enter story name (default: '{default_name}'): ").strip()
+        story_name = story_name_input if story_name_input else default_name
+        
+        # Sanitize folder name
+        story_name = "".join(c for c in story_name if c.isalnum() or c in ('_', '-', ' ')).rstrip()
+        story_name = story_name.replace(" ", "_")
+        
+        output_dir = output_base / story_name
+        
+        # Check if folder exists (same logic as mode 1)
+        if output_dir.exists():
+            checkpoint = output_dir / "workflow_state.json"
+            if checkpoint.exists():
+                print(f"\n⚠️  Story folder '{story_name}' already exists!")
+                resume_choice = input("   Resume from this checkpoint? (Y/n): ").strip().lower()
+                if resume_choice != 'n':
+                    resume_from = checkpoint
+                    print(f"✅ Will resume from existing checkpoint")
+                else:
+                    overwrite = input("   Overwrite existing folder? (y/N): ").strip().lower()
+                    if overwrite == 'y':
+                        import shutil
+                        shutil.rmtree(output_dir)
+                        print(f"✅ Deleted existing folder")
+                    else:
+                        print("❌ Cancelled. Please choose a different story name.")
+                        sys.exit(0)
     
     elif mode == "3" and resumable_projects:
         print("\n" + "-" * 60)
@@ -135,12 +216,6 @@ def interactive_menu():
     iterations_input = input("Enter max iterations (default: 5): ").strip()
     max_iterations = int(iterations_input) if iterations_input else 5
     
-    # Output directory
-    print("\n" + "-" * 60)
-    print("📁 Output Directory")
-    output_input = input("Enter output path (default: ./output): ").strip()
-    output_dir = Path(output_input) if output_input else Path("./output")
-    
     # Verbose mode
     print("\n" + "-" * 60)
     verbose_input = input("🔊 Enable verbose logging? (y/N): ").strip().lower()
@@ -156,6 +231,7 @@ def interactive_menu():
     else:
         print(f"Mode: Create from idea")
         print(f"Idea: {film_idea}")
+    print(f"Story Name: {story_name}")
     print(f"Duration: {duration}s")
     print(f"Quality Threshold: {threshold}/10")
     print(f"Max Iterations: {max_iterations}")
