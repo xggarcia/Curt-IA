@@ -187,7 +187,14 @@ class WorkflowOrchestrator:
         """Phase B: Scriptwriting with iterative refinement"""
         logger.info("=== PHASE B: SCRIPTWRITING ===")
         self.state.current_phase = "SCRIPTWRITING"
-        self.state.iteration_count = 0
+        
+        # Only reset iteration count if starting fresh (not resuming)
+        if self.state.iteration_count == 0:
+            # Fresh start
+            logger.debug("Starting scriptwriting from iteration 0")
+        else:
+            # Resuming from checkpoint
+            logger.info(f"Continuing from iteration {self.state.iteration_count}")
         
         # Check if we're starting from a base script
         is_revision = self.base_script is not None
