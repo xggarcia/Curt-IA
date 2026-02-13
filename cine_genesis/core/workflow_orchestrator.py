@@ -13,10 +13,13 @@ from cine_genesis.utils.api_clients import GeminiClient
 from cine_genesis.agents.governance.director_agent import DirectorAgent
 from cine_genesis.agents.governance.coherence_manager_agent import CoherenceManagerAgent
 from cine_genesis.agents.creative.scriptwriter_agent import ScriptwriterAgent
+from cine_genesis.agents.creative.storyboard_agent import StoryboardAgent
+from cine_genesis.agents.creative.animator_agent import AnimatorAgent
 from cine_genesis.agents.critics.technical_critic import TechnicalCriticAgent
 from cine_genesis.agents.critics.narrative_critic import NarrativeCriticAgent
 from cine_genesis.agents.critics.audience_critic import AudienceCriticAgent
 from cine_genesis.core.voting_system import VotingSystem, Feedback
+from cine_genesis.core.prompt_generator import PromptGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +94,8 @@ class WorkflowOrchestrator:
         self.director = DirectorAgent(self.gemini_client)
         self.coherence_manager = CoherenceManagerAgent(self.gemini_client)
         self.scriptwriter = ScriptwriterAgent(self.gemini_client)
+        self.storyboard_artist = StoryboardAgent(self.gemini_client)
+        self.animator = AnimatorAgent()
         
         # Critics
         self.technical_critic = TechnicalCriticAgent(self.gemini_client)
@@ -99,6 +104,9 @@ class WorkflowOrchestrator:
         
         # Voting system
         self.voting_system = VotingSystem()
+        
+        # Prompt Generator
+        self.prompt_generator = PromptGenerator()
         
         # State - load from checkpoint if resuming
         if resume_from and resume_from.exists():
@@ -132,10 +140,26 @@ class WorkflowOrchestrator:
             # Phase B: Scriptwriting
             if self.state.current_phase == "SCRIPTWRITING":
                 self._phase_scriptwriting()
-                self.state.current_phase = "COMPLETE"
+                self.state.current_phase = "STORYBOARDING"
                 self._save_checkpoint()
             else:
                 logger.info(f"Skipping SCRIPTWRITING (already completed)")
+            
+            # Phase C: Storyboarding
+            if self.state.current_phase == "STORYBOARDING":
+                self._phase_storyboarding()
+                self.state.current_phase = "ANIMATION"
+                self._save_checkpoint()
+            else:
+                logger.info(f"Skipping STORYBOARDING (already completed)")
+            
+            # Phase D: Animation
+            if self.state.current_phase == "ANIMATION":
+                self._phase_animation()
+                self.state.current_phase = "COMPLETE"
+                self._save_checkpoint()
+            else:
+                logger.info(f"Skipping ANIMATION (already completed)")
             
             # Phase C: Visualization (TODO)
             # if self.state.current_phase == "VISUALIZATION":
@@ -382,12 +406,90 @@ AGGREGATED FEEDBACK:
                 data = json.load(f)
             return WorkflowState.from_dict(data)
         except Exception as e:
-            logger.error(f"Failed to load checkpoint: {e}")
-            raise RuntimeError(f"Cannot resume: checkpoint file is corrupted or invalid")
+            logger.error(f"❌ Error loading checkpoint: {e}")
+            raise
+    
+    def _phase_storyboarding(self):
+        """Phase C: Storyboard Generation"""
+        logger.info("=== PHASE C: STORYBOARDING ===")
+        
+        if not self.state.script:
+            logger.error("❌ No approved script found for storyboarding!")
+            return
+        
+        logger.info("Storyboard Artist creating detailed scene descriptions...")
+        
+        try:
+            storyboard = self.storyboard_artist.execute(
+                input_data=self.state.script,
+                context={
+                    "vision": self.state.director_vision or {}
+                }
+            )
+            
+            # Save storyboard
+            storyboard_path = self.output_dir / "storyboard.txt"
+            storyboard_path.write_text(storyboard, encoding='utf-8')
+            logger.info(f"✅ Storyboard saved to: {storyboard_path}")
+            
+            # Update state
+            self.state.storyboard = {"text": storyboard, "path": str(storyboard_path)}
+            self._save_checkpoint()
+            
+            logger.info("Storyboard generation complete.")
+            
+            # Generate video prompts
+            logger.info("Generating optimized video prompts...")
+            prompts = self.prompt_generator.generate(storyboard)
+            prompts_path = self.output_dir / "video_generation_prompts.txt"
+            prompts_path.write_text(prompts, encoding='utf-8')
+            logger.info(f"✅ Video prompts saved to: {prompts_path}\n")
+            
+        except Exception as e:
+            logger.error(f"❌ Storyboard generation failed: {e}")
+            raise
+    
+    def _phase_animation(self):
+        """Phase D: Video Animation"""
+        logger.info("=== PHASE D: VIDEO ANIMATION ===")
+        
+        # Load storyboard
+        storyboard_path = self.output_dir / "storyboard.txt"
+        if not storyboard_path.exists():
+            logger.error("❌ No storyboard found for animation!")
+            return
+        
+        storyboard_text = storyboard_path.read_text(encoding='utf-8')
+        
+        logger.info("Animator creating video from storyboard...")
+        logger.info("(This may take a few minutes)")
+        
+        try:
+            video_path = self.output_dir / "film.mp4"
+            
+            video_file = self.animator.execute(
+                input_data=storyboard_text,
+                context={
+                    "output_path": video_path
+                }
+            )
+            
+            logger.info(f"✅ Video created: {video_file}")
+            
+            # Update state
+            self.state.assets['video'] = str(video_file)
+            self._save_checkpoint()
+            
+            logger.info("Animation complete.\n")
+            
+        except Exception as e:
+            logger.error(f"❌ Animation failed: {e}")
+            logger.error("Check that moviepy and ffmpeg are installed:")
+            logger.error("  pip install moviepy")
+            logger.error("  (ffmpeg should be installed automatically)")
+            raise
     
     def _get_latest_feedback(self) -> str:
         """Get formatted feedback from last iteration"""
         feedback_path = self.output_dir / f"feedback_iteration_{self.state.iteration_count - 1}.txt"
-        if feedback_path.exists():
-            return feedback_path.read_text(encoding='utf-8')
         return ""

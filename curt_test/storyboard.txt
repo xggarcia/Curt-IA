@@ -1,0 +1,181 @@
+## STORYBOARD: THE LAST LINE (REVISION #13)
+
+---
+SCENE 1: INT. DUSTY OFFICE - NIGHT
+
+Shot Type: Extreme Close-Up (ECU)
+Camera Movement: Static
+Camera Angle: Eye Level (focused on the keys)
+Composition: The frame is dominated by the glossy black keys of the vintage typewriter. A single, harsh cone of yellow light illuminates the center, catching dust motes swirling above the letter 'A' and 'S'.
+Lighting: Hard, directional tungsten light from the desk lamp, creating deep shadows around the edges of the frame. Creates a sense of isolation.
+Color Palette: High contrast blacks, deep shadows, warm yellow highlights.
+Action: The keys are perfectly still. The ambient sound of rhythmic rain begins faintly.
+Visual Focus: The texture of the keys and the dancing dust motes.
+Duration: ~3 seconds
+---
+
+Shot Type: Medium Close-Up (MCU)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: Martha is framed from the chest up, leaning slightly over the typewriter. Her intense eyes are visible, staring intently at the blank paper in the carriage. The harsh lamp casts strong shadows across her face, highlighting the tension around her eyes and mouth.
+Lighting: Harsh, low-key lighting; the background recedes into near-total darkness.
+Color Palette: Muted browns, deep blacks, and the stark white of the paper.
+Action: Martha stares, her expression strained. She speaks her line.
+Visual Focus: Martha's intense, focused eyes.
+Duration: ~4 seconds
+---
+
+Shot Type: Extreme Close-Up (ECU)
+Camera Movement: Static (Slight, momentary push-in on the final key strike)
+Camera Angle: High Angle (looking directly down onto the keys)
+Composition: Focus tight on Martha’s fingers as they strike the keys, specifically hitting the letter 'N' then 'E' then 'V' etc. The action is jerky and forceful.
+Lighting: Bright, focused overhead light.
+Color Palette: Stark white paper contrast against dark grey/black keys.
+Action: Martha types the word "Never." Her fingers hit the keys with aggressive force. She immediately slams the backspace key repeatedly (*click-clack*).
+Visual Focus: The violent motion of the keys being struck and then violently reversed.
+Duration: ~3 seconds
+---
+
+Shot Type: Medium Shot (MS)
+Camera Movement: Slight Handheld/Jittery movement simulating frustration.
+Camera Angle: Eye Level
+Composition: Martha is seen pulling the paper out of the roller. Her hands are visible gripping the edges of the sheet, tearing it slightly as she yanks. The crumpled ball of paper is visible in her hand.
+Lighting: Continues the harsh, isolated desk lamp light.
+Color Palette: Warm, tense tones.
+Action: Martha grunts, rips the paper out, crumples it violently, and throws it off-frame to the right.
+Visual Focus: The crumpled paper ball leaving the frame.
+Duration: ~3 seconds
+---
+
+Shot Type: Insert Shot (Extreme Close-Up)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: The typewriter carriage is centered. Martha’s hands quickly feed a fresh, pristine white sheet of paper into the roller. The previous lines of text are clearly legible in the center of the frame.
+Lighting: The focused beam of the desk lamp hits the paper, making it almost painfully bright.
+Color Palette: Pure white dominates the frame.
+Action: A fresh sheet is inserted. The camera holds briefly on the existing text.
+Visual Focus: The three lines of typed text.
+Duration: ~3 seconds
+---
+
+Shot Type: Medium Close-Up (MCU)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: Martha is framed from the waist up, seated at the desk. She is leaning back slightly, drawing a shaky breath. Her hand reaches down to a glass of water just outside the immediate light pool.
+Lighting: Slightly softer on her face as she leans back, but the contrast remains high.
+Color Palette: Darker tones surrounding the illuminated desk area.
+Action: Martha sighs, drinks the water shakily, and sets the glass down hard.
+Visual Focus: The slight tremble in her hand as she drinks.
+Duration: ~4 seconds
+---
+
+Shot Type: Wide Shot (WS)
+Camera Movement: Slow, subtle Push-In (Dolly In)
+Camera Angle: Slightly High Angle (looking down into the room)
+Composition: The frame shows the entire cluttered office. Martha is a small, tense figure dwarfed by towering stacks of books and paper surrounding her desk area. The doorway to the rest of the house is a large, black, ominous void in the background.
+Lighting: The desk lamp creates a small, bright island of activity in a sea of deep shadows.
+Color Palette: Heavy use of dark, dusty browns and deep blacks.
+Action: Martha slams the glass down. The camera pushes in slowly on her figure.
+Visual Focus: Martha's isolation amidst the clutter, contrasted with the black doorway.
+Duration: ~4 seconds
+---
+
+Shot Type: Extreme Close-Up (ECU)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: Tight focus on the desk blotter where the glass sat. A few distinct, glistening droplets of water are visible, catching the lamp light.
+Lighting: Hard, specular highlights on the water droplets.
+Color Palette: Dark textures contrasted with bright, wet highlights.
+Action: The water droplets are perfectly still. (SOUND EFFECT: The rain abruptly STOPS, creating a vacuum of silence).
+Visual Focus: The water droplets, reflecting the lamp light like tiny, distorted eyes.
+Duration: ~2 seconds
+---
+
+Shot Type: Medium Close-Up (MCU)
+Camera Movement: Quick Snap Zoom/Rack Focus
+Camera Angle: Eye Level
+Composition: Martha’s face is sharply lit. Her eyes widen suddenly, snapping away from the desk toward the darkened doorway (off-screen right). The focus shifts slightly from her face to the darkness beyond, making the background look momentarily deeper and more threatening.
+Lighting: The light emphasizes the shock on her face.
+Color Palette: Tension in the shadows.
+Action: Martha glances toward the darkness, searching. (SOUND EFFECT: The rain immediately RUSHES back into the audio track).
+Visual Focus: The sudden dilation of Martha's pupils.
+Duration: ~2.5 seconds
+---
+
+Shot Type: Medium Shot (MS)
+Camera Movement: Tracking Shot (following her hands)
+Camera Movement: Static on the keys
+Camera Angle: Eye Level
+Composition: The frame is dominated by the typewriter keys again. Martha’s hands descend rapidly, poised over the keyboard. The paper is visible in the carriage.
+Lighting: Intense, focused light.
+Color Palette: High contrast.
+Action: Driven by adrenaline, Martha attacks the keys with furious speed.
+Visual Focus: The blur of fingers flying across the keys.
+Duration: ~3 seconds
+---
+
+Shot Type: Extreme Close-Up (ECU)
+Camera Movement: Static
+Camera Angle: Eye Level (focused on the carriage return)
+Composition: The final keystroke lands, followed immediately by the sharp, metallic *DING!* of the carriage return lever being thrown hard across the roller.
+Lighting: Harsh.
+Color Palette: Metallic shine on the lever.
+Action: The final mechanical action of finishing the sentence.
+Visual Focus: The carriage return lever moving across the frame.
+Duration: ~1 second
+---
+
+Shot Type: Close-Up (CU)
+Camera Movement: Slow Dolly-In (crawling toward the paper)
+Camera Angle: Eye Level
+Composition: The frame is filled with the typewritten page. The last line, "He was already inside," is centered and perfectly struck. Martha’s heavy breathing is audible, slightly misting the air above the paper.
+Lighting: The harsh light illuminates the final words.
+Color Palette: The stark white paper emphasizes the black text.
+Action: Martha leans in, breathing heavily, looking at her completed work. Her initial relief fades into dawning horror.
+Visual Focus: The final four words: "He was already inside."
+Duration: ~4 seconds
+---
+
+Shot Type: Extreme Close-Up (ECU)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: Tight focus on Martha’s index finger, trembling slightly, reaching out toward the paper. It lands gently, just brushing the ink of the word "inside."
+Lighting: Focused, revealing texture.
+Color Palette: Skin tones against paper white.
+Action: Her finger touches the final word. Her eyes, visible just at the edge of the frame, widen in paralyzing realization.
+Visual Focus: The contact point between skin and ink.
+Duration: ~3 seconds
+---
+
+Shot Type: Close-Up (CU)
+Camera Movement: Static
+Camera Angle: Eye Level
+Composition: Frame filled entirely by Martha's face. Her eyes are wide, locked onto something beyond the frame (the paper). Her mouth is slightly agape, but silent. The subtle tremor in her jaw is visible.
+Lighting: Still harsh, but now emphasizing the psychological impact—the shadows seem deeper, colder.
+Color Palette: Cool tones start to creep in, suggesting dread.
+Action: Martha freezes completely, rigid with shock. The only sound heard is a sharp, audible intake of breath (gasp).
+Visual Focus: The terror filling her eyes.
+Duration: ~3 seconds
+---
+
+Shot Type: Wide Shot (WS)
+Camera Movement: Slow, controlled Tilt Down
+Camera Angle: Slightly High Angle
+Composition: The frame shows Martha hunched over the desk, her body shaking violently. Her forehead is pressed against the cool metal frame of the typewriter. One hand is clamped tightly over her mouth, muffling any sound. The single sheet of paper remains perfectly illuminated under the lamp, the final sentence starkly visible.
+Lighting: The lamp still isolates the desk, but the surrounding darkness feels heavier, more oppressive.
+Color Palette: Dark, cold, and claustrophobic.
+Action: Martha presses herself against the machine, trembling, grounded only by the cold metal and the terrible truth on the page.
+Visual Focus: The contrast between Martha’s shaking body and the stillness of the final typed line.
+Duration: ~5 seconds
+---
+
+Shot Type: Full Frame Fade
+Camera Movement: N/A
+Camera Angle: N/A
+Composition: Pure blackness consuming the entire frame.
+Lighting: None.
+Color Palette: Black.
+Action: The image dissolves rapidly to black.
+Visual Focus: None.
+Duration: ~2 seconds
+---

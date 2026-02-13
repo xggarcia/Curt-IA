@@ -1,8 +1,12 @@
+```
 # CINE-GENESIS Dependencies
 
 # Core AI/ML
 google-generativeai>=0.8.0
 pillow>=10.0.0
+
+# Video Animation
+numpy>=1.24.0
 
 # Video/Audio Processing
 moviepy>=1.0.3
@@ -12,6 +16,12 @@ ffmpeg-python>=0.2.0
 # stability-sdk  # For Stability AI
 # replicate  # For Replicate API
 # elevenlabs  # For ElevenLabs TTS
+
+# Local AI Image Generation
+diffusers>=0.25.0
+transformers>=4.36.0
+torch>=2.1.0
+accelerate>=0.25.0
 
 # Utilities
 requests>=2.31.0

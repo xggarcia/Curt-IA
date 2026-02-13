@@ -77,6 +77,40 @@ class QualityConfig:
 
 
 @dataclass
+class VisualAnimationConfig:
+    """Visual animation settings for AI-generated images"""
+    # Enable/disable AI image generation
+    use_ai_images: bool = True
+    
+    # Image resolution: "draft" (512x512), "standard" (1024x1024), "hd" (1920x1080)
+    image_resolution: str = "standard"
+    
+    # Number of images per scene (title, main, details)
+    images_per_scene: int = 3
+    
+    # Cache generated images to avoid regeneration
+    cache_generated_images: bool = True
+    
+    # Fallback to text frames if image generation fails
+    fallback_to_text: bool = True
+    
+    # Imagen model configuration
+    imagen_model: str = "runwayml/stable-diffusion-v1-5"
+    aspect_ratio: str = "16:9"
+    
+    def get_image_dimensions(self) -> tuple[int, int]:
+        """Get image dimensions based on resolution setting"""
+        if self.image_resolution == "draft":
+            return (512, 288)  # 16:9 aspect ratio
+        elif self.image_resolution == "standard":
+            return (1024, 576)
+        elif self.image_resolution == "hd":
+            return (1920, 1080)
+        else:
+            return (1024, 576)  # Default to standard.
+
+
+@dataclass
 class WorkflowConfig:
     """Workflow and output settings"""
     
@@ -107,6 +141,7 @@ class CineGenesisConfig:
     api: APIConfig = field(default_factory=APIConfig)
     quality: QualityConfig = field(default_factory=QualityConfig)
     workflow: WorkflowConfig = field(default_factory=WorkflowConfig)
+    visual_animation: VisualAnimationConfig = field(default_factory=VisualAnimationConfig)
     
     @classmethod
     def from_dict(cls, config_dict: Dict) -> "CineGenesisConfig":
@@ -114,7 +149,8 @@ class CineGenesisConfig:
         return cls(
             api=APIConfig(**config_dict.get("api", {})),
             quality=QualityConfig(**config_dict.get("quality", {})),
-            workflow=WorkflowConfig(**config_dict.get("workflow", {}))
+            workflow=WorkflowConfig(**config_dict.get("workflow", {})),
+            visual_animation=VisualAnimationConfig(**config_dict.get("visual_animation", {}))
         )
     
     def validate(self) -> bool:
